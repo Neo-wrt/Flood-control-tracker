@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flood Control Corruption Database</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f4f4}
+header{background:#0a4d8c;color:#fff;padding:1rem;text-align:center}
+.controls{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;padding:1rem;background:#e3e3e3}
+input,select{padding:.5rem;font-size:1rem}
+table{width:96%;margin:1rem auto;border-collapse:collapse;background:#fff}
+th,td{border:1px solid #ccc;padding:.6rem;text-align:left}
+th{background:#0a4d8c;color:#fff}
+button{background:#0a4d8c;color:#fff;border:none;padding:.3rem .6rem;cursor:pointer}
+button:hover{background:#06345f}
+.summary-title{text-align:center;font-weight:bold;margin-top:2rem}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Flood Control Corruption Database</h1>
+</header>
+
+<section class="controls">
+<select id="category">
+<option value="all">All Categories</option>
+<option value="contractor">Contractors & Companies</option>
+<option value="personnel">DPWH Personnel</option>
+<option value="operators">Leading Operators / Politicians</option>
+</select>
+<input id="search" placeholder="Search name, role, region, city, amount">
+</section>
+
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Name / Company</th>
+<th>Role / Position</th>
+<th>Region</th>
+<th>City</th>
+<th>Project Location</th>
+<th>Notes / Allegation</th>
+<th>Amount (₱)</th>
+<th>Year</th>
+<th>Edit</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<div class="summary-title">TOTAL AMOUNTS PER NAME / COMPANY</div>
+<table>
+<thead>
+<tr>
+<th>Name / Company</th>
+<th>Total Amount (₱)</th>
+<th>Category</th>
+</tr>
+</thead>
+<tbody id="totals"></tbody>
+</table>
+
+<script>
+const data = [
+{category:'operators',name:'Henry Alcantara',role:'Former DPWH Bulacan District Engineer',region:'Region III',city:'Bulacan',location:'Flood Control Projects',notes:'Returned kickbacks, state witness',amount:'₱181,000,000',amountNumeric:181000000,year:'2025'},
+{category:'operators',name:'DPWH NCR Director (Unnamed)',role:'DPWH NCR Director',region:'NCR',city:'Metro Manila',location:'Flood Control Projects',notes:'Surrendered alleged kickbacks',amount:'₱40,000,000',amountNumeric:40000000,year:'2025'},
+{category:'operators',name:'Roberto Bernardo',role:'Former DPWH Undersecretary',region:'National',city:'—',location:'Multiple Projects',notes:'Funds frozen by government',amount:'₱7,000,000',amountNumeric:7000000,year:'2025'},
+{category:'operators',name:'Francis “Chiz” Escudero',role:'Senator',region:'National',city:'—',location:'Campaign Funding',notes:'Admitted contractor donation',amount:'₱30,000,000',amountNumeric:30000000,year:'2022'},
+{category:'contractor',name:'Legacy Construction Corp.',role:'Contractor',region:'Multiple',city:'Multiple',location:'Nationwide',notes:'Top 15 contractor',amount:'Part of ₱100B',amountNumeric:100000000000,year:''},
+{category:'personnel',name:'Brice Ericson Hernandez',role:'Former DPWH OIC-Assistant District Engineer',region:'Region III',city:'Bulacan',location:'Flood Control',notes:'Named in asset probe',amount:'N/A',year:''}
+];
+
+function peso(n){return '₱'+n.toLocaleString();}
+
+function render(){
+const cat=document.getElementById('category').value;
+const q=document.getElementById('search').value.toLowerCase();
+const tbody=document.getElementById('tbody');
+tbody.innerHTML='';
+data.filter(d=>(cat==='all'||d.category===cat)&&Object.values(d).some(v=>String(v).toLowerCase().includes(q)))
+.forEach((d,i)=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${d.category}</td>
+<td>${d.name}</td>
+<td>${d.role}</td>
+<td>${d.region||''}</td>
+<td>${d.city||''}</td>
+<td>${d.location||''}</td>
+<td>${d.notes}</td>
+<td>${d.amount}</td>
+<td>${d.year}</td>
+<td><button onclick="edit(${i})">Edit</button></td>`;
+tbody.appendChild(tr);
+});
+renderTotals();
+}
+
+function edit(i){
+const d=data[i];
+['name','role','region','city','location','notes','amount','year'].forEach(k=>{
+const v=prompt('Edit '+k,d[k]||'');
+if(v!==null && v!=='') d[k]=v;
+});
+render();
+}
+
+function renderTotals(){
+const totals={};
+data.forEach(d=>{
+if(d.amountNumeric){
+totals[d.name]=(totals[d.name]||0)+d.amountNumeric;
+}
+});
+const t=document.getElementById('totals');
+t.innerHTML='';
+Object.keys(totals).forEach(name=>{
+const row=data.find(d=>d.name===name);
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${name}</td><td>${peso(totals[name])}</td><td>${row.category}</td>`;
+t.appendChild(tr);
+});
+}
+
+document.getElementById('category').onchange=render;
+document.getElementById('search').oninput=render;
+render();
+</script>
+
+</body>
+</html>
